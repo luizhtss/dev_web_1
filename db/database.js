@@ -19,7 +19,6 @@ db.run(`
   if (error) {
     console.error('Erro ao criar tabela:', error.message);
   } else {
-    console.log('Tabela "products" criada com sucesso.');
     db.run('DELETE FROM products')
     const baseProducts = [
         { name: 'Caneca de cerâmica rústica', description: faker.lorem.paragraph(), image_url: 'https://storage.googleapis.com/xesque-dev/challenge-images/caneca-06.jpg', category: 'mugs' },
