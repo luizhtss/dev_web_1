@@ -11,21 +11,29 @@ app.use(cors());
 
 // Rota para listar produtos
 app.get('/produtos', (req, res) => {
-  // Obter parâmetros de consulta da página e limite
   const page = req.query.page || 1;
   const limit = req.query.limit || 12;
   const offset = (page - 1) * limit;
+  const tipoProduto = req.query.tipo;
 
-  // Consulta para obter produtos ordenados por vendas
-  const query = `
+  // Consulta para obter produtos ordenados por vendas, considerando o filtro de tipo se fornecido
+  let query = `
     SELECT *
     FROM products
-    ORDER BY sales DESC
-    LIMIT ? OFFSET ?
   `;
 
+  const queryParams = [];
+
+  if (tipoProduto) {
+    query += `WHERE category = ? `;
+    queryParams.push(tipoProduto);
+  }
+
+  query += `ORDER BY sales DESC LIMIT ? OFFSET ?`;
+  queryParams.push(limit, offset);
+
   // Executar a consulta no banco de dados
-  db.all(query, [limit, offset], (err, rows) => {
+  db.all(query, queryParams, (err, rows) => {
     if (err) {
       console.error('Erro ao obter os produtos:', err.message);
       res.status(500).json({ error: 'Erro ao obter os produtos' });
@@ -48,27 +56,34 @@ app.get('/produtos', (req, res) => {
   });
 });
 
-// Outras rotas para listar produtos por diferentes critérios (novidades, preço maior, preço menor, mais vendidos)
-
 // Rota para listar produtos mais recentes
 app.get('/novidades', (req, res) => {
   const limit = req.query.limit || 12;
+  const tipoProduto = req.query.tipo;
 
-  // Consulta para obter produtos ordenados pela data de criação
-  const query = `
+  // Consulta para obter produtos, considerando o filtro de tipo se fornecido
+  let query = `
     SELECT *
     FROM products
-    ORDER BY created_at DESC
-    LIMIT ?
   `;
 
+  const queryParams = [];
+
+  if (tipoProduto) {
+    query += `WHERE category = ? `;
+    queryParams.push(tipoProduto);
+  }
+
+  query += `ORDER BY created_at DESC LIMIT ?`;
+  queryParams.push(limit);
+
   // Executar a consulta no banco de dados
-  db.all(query, [limit], (err, rows) => {
+  db.all(query, queryParams, (err, rows) => {
     if (err) {
       console.error('Erro ao obter os produtos:', err.message);
       res.status(500).json({ error: 'Erro ao obter os produtos' });
     } else {
-      // // Mapeamento dos resultados.
+      // Mapeamento dos resultados.
       const allProducts = rows.map(row => ({
         id: row.id,
         name: row.name,
@@ -89,37 +104,92 @@ app.get('/novidades', (req, res) => {
 // Rota para listar produtos por preço maior
 app.get('/preco-maior', (req, res) => {
   const limit = req.query.limit || 12;
+  const tipoProduto = req.query.tipo;
 
-  // Consulta para obter produtos ordenados por preço em ordem decrescente
-  const query = `
+  // Consulta para obter produtos, considerando o filtro de tipo se fornecido
+  let query = `
     SELECT *
     FROM products
-    ORDER BY price_in_cents DESC
-    LIMIT ?
   `;
 
-  // Executar a consulta no banco de dados
-  db.all(query, [limit], (err, rows) => {
-    // Mapeamento dos resultados.
-    const allProducts = rows.map(row => ({
-      id: row.id,
-      name: row.name,
-      description: row.description,
-      image_url: row.image_url,
-      category: row.category,
-      price_in_cents: row.price_in_cents,
-      sales: row.sales,
-      created_at: row.created_at
-    }));
+  const queryParams = [];
 
-    // Enviar a resposta JSON com os produtos
-    res.json({ data: { allProducts } });
+  if (tipoProduto) {
+    query += `WHERE category = ? `;
+    queryParams.push(tipoProduto);
+  }
+
+  query += `ORDER BY price_in_cents DESC LIMIT ?`;
+  queryParams.push(limit);
+
+  // Executar a consulta no banco de dados
+  db.all(query, queryParams, (err, rows) => {
+    if (err) {
+      console.error('Erro ao obter os produtos:', err.message);
+      res.status(500).json({ error: 'Erro ao obter os produtos' });
+    } else {
+      // Mapeamento dos resultados.
+      const allProducts = rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        image_url: row.image_url,
+        category: row.category,
+        price_in_cents: row.price_in_cents,
+        sales: row.sales,
+        created_at: row.created_at
+      }));
+
+      // Enviar a resposta JSON com os produtos
+      res.json({ data: { allProducts } });
+    }
   });
 });
 
-// Rota para listar produtos por preço menor (semelhante à rota anterior)
+// Rota para listar produtos por preço menor
+app.get('/preco-menor', (req, res) => {
+  const limit = req.query.limit || 12;
+  const tipoProduto = req.query.tipo;
 
-// Rota para listar produtos mais vendidos (semelhante à rota anterior)
+  // Consulta para obter produtos, considerando o filtro de tipo se fornecido
+  let query = `
+    SELECT *
+    FROM products
+  `;
+
+  const queryParams = [];
+
+  if (tipoProduto) {
+    query += `WHERE category = ? `;
+    queryParams.push(tipoProduto);
+  }
+
+  query += `ORDER BY price_in_cents ASC LIMIT ?`;
+  queryParams.push(limit);
+
+  // Executar a consulta no banco de dados
+  db.all(query, queryParams, (err, rows) => {
+    if (err) {
+      console.error('Erro ao obter os produtos:', err.message);
+      res.status(500).json({ error: 'Erro ao obter os produtos' });
+    } else {
+      // Mapeamento dos resultados.
+      const allProducts = rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        image_url: row.image_url,
+        category: row.category,
+        price_in_cents: row.price_in_cents,
+        sales: row.sales,
+        created_at: row.created_at
+      }));
+
+      // Enviar a resposta JSON com os produtos
+      res.json({ data: { allProducts } });
+    }
+  });
+});
 
 // Rota para listar produtos de uma categoria específica (mugs)
 app.get('/mugs', (req, res) => {
