@@ -192,6 +192,45 @@ app.get('/t-shirts', (req, res) => {
   });
 });
 
+// Rota para buscar produtos pelo nome
+app.get('/produtos/buscar', (req, res) => {
+  const limit = req.query.limit || 12;
+  console.log(req.query);
+  // Obter o parâmetro de consulta 'nome' da URL
+  const productName = req.query.nome;
+
+  // Consulta para obter produtos que correspondem ao nome fornecido
+  const query = `
+    SELECT *
+    FROM products
+    WHERE name LIKE ?
+    LIMIT ?
+  `;
+
+  // Executar a consulta no banco de dados
+  db.all(query, [`%${productName}%`, limit], (err, rows) => {
+    if (err) {
+      console.error('Erro ao buscar produtos:', err.message);
+      res.status(500).json({ error: 'Erro ao buscar produtos' });
+    } else {
+      const matchedProducts = rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        image_url: row.image_url,
+        category: row.category,
+        price_in_cents: row.price_in_cents,
+        sales: row.sales,
+        created_at: row.created_at
+      }));
+
+      // Enviar a resposta JSON com os produtos correspondentes
+      res.json({ data: { matchedProducts } });
+    }
+  });
+});
+
+
 // Iniciar o servidor na porta especificada
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
