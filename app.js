@@ -1,10 +1,13 @@
 // Importar as dependências
 const express = require('express');
 const db = require('./db/database');
+const cors = require('cors');
 
 // Criar uma instância do aplicativo Express
 const app = express();
 const port = 3333;
+
+app.use(cors());
 
 // Rota para listar produtos
 app.get('/produtos', (req, res) => {
