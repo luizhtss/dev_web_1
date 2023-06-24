@@ -76,7 +76,8 @@ app.get('/novidades', (req, res) => {
 
   query += `ORDER BY created_at DESC LIMIT ?`;
   queryParams.push(limit);
-
+  console.log(queryParams)
+  console.log(tipoProduto)
   // Executar a consulta no banco de dados
   db.all(query, queryParams, (err, rows) => {
     if (err) {
