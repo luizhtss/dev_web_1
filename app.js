@@ -196,7 +196,7 @@ app.get('/t-shirts', (req, res) => {
 });
 
 // Rota para buscar produtos pelo nome
-app.get('/produtos/buscar', (req, res) => {
+app.get('/buscar', (req, res) => {
   const limit = req.query.limit || 12;
   console.log(req.query);
   // Obter o parâmetro de consulta 'nome' da URL
