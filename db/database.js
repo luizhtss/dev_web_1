@@ -5,6 +5,14 @@ const { v4: uuidv4 } = require('uuid');
 const db = new sqlite3.Database('./db/database.sqlite');
 
 db.run(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL
+  )
+`);
+
+db.run(`
   CREATE TABLE IF NOT EXISTS products (
     id TEXT PRIMARY KEY,
     name TEXT,

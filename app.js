@@ -2,12 +2,89 @@
 const express = require('express');
 const db = require('./db/database');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
+
 
 // Criar uma instância do aplicativo Express
 const app = express();
 const port = 3333;
 
 app.use(cors());
+
+// Rota para cadastro do usuário.
+app.post('/registrar', (req, res) => {
+  const { user, password } = req.query;
+
+  // Verificar se o usuário e a senha foram fornecidos
+  if (!user || !password) {
+    res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
+    return;
+  }
+  bcrypt.hash(password, 10, (err, hash) => {
+    if (err) {
+      console.error('Erro ao gerar o hash da senha:', err);
+      res.status(500).json({ error: 'Erro ao registrar o usuário' });
+      return;
+    }
+
+    const query = `
+      INSERT INTO users (user, password_hash)
+      VALUES (?, ?)
+    `;
+
+    db.run(query, [user, hash], function(err) {
+      if (err) {
+        console.error('Erro ao inserir o usuário:', err);
+        res.status(500).json({ error: 'Erro ao registrar o usuário' });
+      } else {
+        res.json({ message: 'Usuário registrado com sucesso' });
+      }
+    });
+  });
+});
+
+// Rota para logar.
+app.post('/logar', (req, res) => {
+  const { user, password } = req.query;
+
+  if (!user || !password) {
+    res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
+    return;
+  }
+
+  const query = `
+    SELECT *
+    FROM users
+    WHERE user = ?
+  `;
+
+  db.get(query, [user], (err, row) => {
+    if (err) {
+      console.error('Erro ao consultar o usuário:', err);
+      res.status(500).json({ error: 'Erro ao autenticar o usuário' });
+      return;
+    }
+
+    if (!row) {
+      res.status(401).json({ error: 'Usuário não encontrado' });
+      return;
+    }
+
+    bcrypt.compare(password, row.password_hash, (err, result) => {
+      if (err) {
+        console.error('Erro ao comparar as senhas:', err);
+        res.status(500).json({ error: 'Erro ao autenticar o usuário' });
+        return;
+      }
+
+      if (result) {
+        res.json({ message: 'Autenticado com sucesso!' });
+      } else {
+        res.status(401).json({ error: 'Senha incorreta' });
+      }
+    });
+  });
+});
 
 // Rota para listar produtos
 app.get('/produtos', (req, res) => {
