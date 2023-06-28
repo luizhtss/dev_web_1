@@ -13,7 +13,7 @@ app.use(cors());
 
 // Rota para cadastro do usuário.
 app.post('/registrar', (req, res) => {
-  const { user, password } = req.query;
+  const { user, password } = req.body;
 
   // Verificar se o usuário e a senha foram fornecidos
   if (!user || !password) {
