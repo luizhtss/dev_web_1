@@ -4,16 +4,16 @@ const db = require('./db/database');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 
-
 // Criar uma instância do aplicativo Express
 const app = express();
 const port = 3333;
 
 app.use(cors());
+app.use(express.json());
 
 // Rota para cadastro do usuário.
 app.post('/registrar', (req, res) => {
-  const { user, password } = req.query;
+  const { user, password } = req.body;
   // Verificar se o usuário e a senha foram fornecidos
   if (!user || !password) {
     res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
@@ -44,9 +44,9 @@ app.post('/registrar', (req, res) => {
 
 // Rota para logar.
 app.post('/logar', (req, res) => {
-  const { user, password } = req.query;
-
-  if (!user || !password) {
+  console.log(req.body)
+  const { username, password } = req.body;
+  if (!username || !password) {
     res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
     return;
   }
@@ -57,7 +57,7 @@ app.post('/logar', (req, res) => {
     WHERE user = ?
   `;
 
-  db.get(query, [user], (err, row) => {
+  db.get(query, [username], (err, row) => {
     if (err) {
       console.error('Erro ao consultar o usuário:', err);
       res.status(500).json({ error: 'Erro ao autenticar o usuário' });
